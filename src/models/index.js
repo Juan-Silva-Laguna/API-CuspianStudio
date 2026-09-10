@@ -8,6 +8,7 @@ const Suscripcion = require('./suscripcion.model');
 const Horario = require('./horario.model');
 const Reserva = require('./reserva.model');
 const Pago = require('./pago.model');
+const GastoEntrenador = require('./gasto_entrenador.model');
 
 // Usuario <-> Entrenador
 Usuario.hasOne(Entrenador, { foreignKey: 'usuario_id', as: 'perfilEntrenador' });
@@ -45,6 +46,10 @@ Pago.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
 Suscripcion.hasMany(Pago, { foreignKey: 'suscripcion_id', as: 'pagos' });
 Pago.belongsTo(Suscripcion, { foreignKey: 'suscripcion_id', as: 'suscripcion' });
 
+// GastoEntrenador associations
+Entrenador.hasMany(GastoEntrenador, { foreignKey: 'entrenador_id', as: 'gastos' });
+GastoEntrenador.belongsTo(Entrenador, { foreignKey: 'entrenador_id', as: 'entrenador' });
+
 module.exports = {
   Usuario,
   Entrenador,
@@ -54,5 +59,6 @@ module.exports = {
   Suscripcion,
   Horario,
   Reserva,
-  Pago
+  Pago,
+  GastoEntrenador
 };

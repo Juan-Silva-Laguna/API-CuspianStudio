@@ -33,4 +33,8 @@ async function misPagos(usuario_id) {
   return pagoRepository.findByUsuarioId(usuario_id);
 }
 
-module.exports = { registrarPago, listarPagos, obtenerPagoPorId, misPagos };
+async function reporteVentas(fecha_inicio, fecha_fin) {
+  return pagoRepository.reporteVentas({ fecha_inicio, fecha_fin });
+}
+
+module.exports = { registrarPago, listarPagos, obtenerPagoPorId, misPagos, reporteVentas };

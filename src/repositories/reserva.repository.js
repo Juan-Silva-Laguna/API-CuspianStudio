@@ -60,6 +60,17 @@ async function findByHorarioId(horario_id) {
   });
 }
 
+async function findByFecha(fecha) {
+  return Reserva.findAll({
+    where: { fecha },
+    include: [
+      { model: Usuario, as: 'usuario', attributes: ['id', 'nombre', 'email'] },
+      { model: Horario, as: 'horario' }
+    ],
+    order: [['createdAt', 'ASC']]
+  });
+}
+
 async function updateById(id, data) {
   const reserva = await Reserva.findByPk(id);
   if (!reserva) return null;
@@ -76,5 +87,6 @@ module.exports = {
   findDuplicada,
   countClasesUsadasEnMes,
   findByHorarioId,
+  findByFecha,
   updateById
 };
