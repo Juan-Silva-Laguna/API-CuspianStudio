@@ -10,6 +10,7 @@ const suscripcionService = require('./services/suscripcion.service');
 const horarioService = require('./services/horario.service');
 const reservaService = require('./services/reserva.service');
 const pagoService = require('./services/pago.service');
+const gastoEntrenadorService = require('./services/gasto_entrenador.service');
 
 const schema = buildSchema(`
   # ── Tipos base ──────────────────────────────────────────────────────────
@@ -117,6 +118,24 @@ const schema = buildSchema(`
     fecha_pago: String
     createdAt: String
     updatedAt: String
+  }
+
+  type GastoEntrenador {
+    id: ID!
+    entrenador_id: Int!
+    concepto: String!
+    monto: Float!
+    metodo_pago: String!
+    fecha_pago: String
+    notas: String
+    createdAt: String
+    updatedAt: String
+  }
+
+  type ReporteVentas {
+    total_ingresos: Float!
+    total_pagos: Int!
+    detalles: [Pago!]!
   }
 
   # ── Inputs ───────────────────────────────────────────────────────────────
@@ -228,6 +247,14 @@ const schema = buildSchema(`
     metodo_pago: String!
   }
 
+  input GastoEntrenadorInput {
+    entrenador_id: Int!
+    concepto: String!
+    monto: Float!
+    metodo_pago: String
+    notas: String
+  }
+
   # ── Queries ──────────────────────────────────────────────────────────────
   type Query {
     health: String!
@@ -259,6 +286,14 @@ const schema = buildSchema(`
     # Entrenador
     misHorarios(entrenador_id: Int!): [Horario!]!
     reservasPorHorario(horario_id: Int!): [Reserva!]!
+    pagosPorEntrenador(entrenador_id: Int!): [GastoEntrenador!]!
+    acumuladoEntrenador(entrenador_id: Int!): Float!
+
+    # Admin — reportes y control de agendamiento
+    reporteVentas(fecha_inicio: String, fecha_fin: String): ReporteVentas!
+    gastosEntrenador(entrenador_id: Int!): [GastoEntrenador!]!
+    todosGastos: [GastoEntrenador!]!
+    reservasPorFecha(fecha: String!): [Reserva!]!
   }
 
   # ── Mutations ─────────────────────────────────────────────────────────────
@@ -305,6 +340,12 @@ const schema = buildSchema(`
 
     # Pagos (admin)
     registrarPago(input: PagoInput!): Pago!
+
+    # Gastos a entrenadores (admin)
+    registrarGastoEntrenador(input: GastoEntrenadorInput!): GastoEntrenador!
+
+    # Reservas puntuales (sin suscripción — pago previo externo)
+    reservarServicioPuntual(usuario_id: Int!, horario_id: Int!, fecha: String!): Reserva!
   }
 `);
 
@@ -374,7 +415,20 @@ const root = {
   // ── Pagos ──
   pagos: () => pagoService.listarPagos(),
   misPagos: ({ usuario_id }) => pagoService.misPagos(usuario_id),
-  registrarPago: ({ input }) => pagoService.registrarPago(input)
+  registrarPago: ({ input }) => pagoService.registrarPago(input),
+  reporteVentas: ({ fecha_inicio, fecha_fin }) => pagoService.reporteVentas(fecha_inicio, fecha_fin),
+
+  // ── Gastos Entrenador ──
+  pagosPorEntrenador: ({ entrenador_id }) => gastoEntrenadorService.gastosPorEntrenador(entrenador_id),
+  acumuladoEntrenador: ({ entrenador_id }) => gastoEntrenadorService.acumuladoPorEntrenador(entrenador_id),
+  gastosEntrenador: ({ entrenador_id }) => gastoEntrenadorService.gastosPorEntrenador(entrenador_id),
+  todosGastos: () => gastoEntrenadorService.listarGastos(),
+  registrarGastoEntrenador: ({ input }) => gastoEntrenadorService.registrarGastoEntrenador(input),
+
+  // ── Reservas puntuales ──
+  reservasPorFecha: ({ fecha }) => reservaService.reservasPorFecha(fecha),
+  reservarServicioPuntual: ({ usuario_id, horario_id, fecha }) =>
+    reservaService.reservarServicioPuntual(usuario_id, horario_id, fecha)
 };
 
 module.exports = graphqlHTTP({

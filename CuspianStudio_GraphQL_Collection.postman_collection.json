@@ -1,0 +1,671 @@
+{
+  "info": {
+    "name": "Cuspian Studio API — Flujo Completo",
+    "_postman_id": "cuspian-studio-full-flow",
+    "description": "Colección GraphQL completa para Cuspian Studio.\n\nFlujo por roles:\n- **Admin**: crear entrenador, servicio, plan, horario; verificar pagos; reporte ventas; registrar gastos a entrenadores.\n- **Entrenador**: ver horarios, validar asistencia, ver acumulado y historial de pagos.\n- **Cliente**: suscribirse a plan, agendar con suscripción, agendar servicio puntual, historial de reservas y pagos.\n\nTodas las peticiones apuntan a `{{baseUrl}}/graphql` con método POST y Content-Type: application/json.\n\n**Variable de entorno requerida**: `baseUrl` → por defecto `http://localhost:3000`",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "🔍 Health Check",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"query\": \"{ health }\" }"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Usuarios",
+      "item": [
+        {
+          "name": "Registrar usuario (cliente)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation Registrar($input: RegistrarUsuarioInput!) { registrarme(input: $input) { id nombre email rol estado } }\",\n  \"variables\": {\n    \"input\": {\n      \"nombre\": \"Juan Pérez\",\n      \"email\": \"juan@example.com\",\n      \"password\": \"secret123\",\n      \"rol\": \"cliente\",\n      \"telefono\": \"3001234567\",\n      \"fecha_nacimiento\": \"1990-05-15\"\n    }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Registrar usuario (entrenador base)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation Registrar($input: RegistrarUsuarioInput!) { registrarme(input: $input) { id nombre email rol } }\",\n  \"variables\": {\n    \"input\": {\n      \"nombre\": \"Carlos Trainer\",\n      \"email\": \"carlos@cuspian.com\",\n      \"password\": \"trainer123\",\n      \"rol\": \"entrenador\"\n    }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Listar usuarios (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"query\": \"{ usuarios { id nombre email rol estado createdAt } }\" }"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Obtener usuario por ID",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query GetUsuario($id: ID!) { usuario(id: $id) { id nombre email rol telefono estado } }\",\n  \"variables\": { \"id\": \"1\" }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Actualizar usuario",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation Actualizar($id: ID!, $input: ActualizarUsuarioInput!) { actualizarUsuario(id: $id, input: $input) { id nombre email telefono } }\",\n  \"variables\": {\n    \"id\": \"1\",\n    \"input\": { \"telefono\": \"3009876543\", \"nombre\": \"Juan Pérez Actualizado\" }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏋️ Admin — Entrenadores",
+      "item": [
+        {
+          "name": "Crear entrenador (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation CrearEntrenador($input: EntrenadorInput!) { crearEntrenador(input: $input) { id usuario_id especialidades biografia certificaciones } }\",\n  \"variables\": {\n    \"input\": {\n      \"usuario_id\": 2,\n      \"especialidades\": \"Yoga, Pilates\",\n      \"biografia\": \"10 años de experiencia en yoga y pilates\",\n      \"certificaciones\": \"RYT-500, STOTT Pilates\"\n    }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Listar entrenadores",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"query\": \"{ entrenadores { id usuario_id especialidades biografia certificaciones } }\" }"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Actualizar entrenador",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ActualizarEntrenador($id: ID!, $input: ActualizarEntrenadorInput!) { actualizarEntrenador(id: $id, input: $input) { id especialidades } }\",\n  \"variables\": {\n    \"id\": \"1\",\n    \"input\": { \"especialidades\": \"Yoga, Pilates, TRX\" }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏢 Admin — Salas",
+      "item": [
+        {
+          "name": "Crear sala (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation CrearSala($input: SalaInput!) { crearSala(input: $input) { id nombre capacidad_maxima descripcion estado } }\",\n  \"variables\": {\n    \"input\": {\n      \"nombre\": \"Sala Principal\",\n      \"capacidad_maxima\": 20,\n      \"descripcion\": \"Sala equipada para clases grupales\",\n      \"estado\": \"activa\"\n    }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Listar salas",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"query\": \"{ salas { id nombre capacidad_maxima estado } }\" }"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Actualizar sala",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ActualizarSala($id: ID!, $input: ActualizarSalaInput!) { actualizarSala(id: $id, input: $input) { id nombre capacidad_maxima estado } }\",\n  \"variables\": {\n    \"id\": \"1\",\n    \"input\": { \"capacidad_maxima\": 25 }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🎯 Admin — Servicios",
+      "item": [
+        {
+          "name": "Crear servicio (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation CrearServicio($input: ServicioInput!) { crearServicio(input: $input) { id nombre descripcion duracion_minutos estado } }\",\n  \"variables\": {\n    \"input\": {\n      \"nombre\": \"Yoga Matutino\",\n      \"descripcion\": \"Clase de yoga para principiantes\",\n      \"duracion_minutos\": 60,\n      \"estado\": \"activo\"\n    }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Listar servicios",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"query\": \"{ servicios { id nombre descripcion duracion_minutos estado } }\" }"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Actualizar servicio",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ActualizarServicio($id: ID!, $input: ActualizarServicioInput!) { actualizarServicio(id: $id, input: $input) { id nombre duracion_minutos } }\",\n  \"variables\": {\n    \"id\": \"1\",\n    \"input\": { \"duracion_minutos\": 75 }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Admin — Planes",
+      "item": [
+        {
+          "name": "Crear plan mensual (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation CrearPlan($input: PlanInput!) { crearPlan(input: $input) { id nombre descripcion precio clases_por_mes invitados_por_mes activo } }\",\n  \"variables\": {\n    \"input\": {\n      \"nombre\": \"Plan Básico\",\n      \"descripcion\": \"12 clases al mes con cualquier entrenador\",\n      \"precio\": 150000,\n      \"clases_por_mes\": 12,\n      \"invitados_por_mes\": 0,\n      \"activo\": true\n    }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Crear plan ilimitado (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation CrearPlan($input: PlanInput!) { crearPlan(input: $input) { id nombre precio clases_por_mes } }\",\n  \"variables\": {\n    \"input\": {\n      \"nombre\": \"Plan Ilimitado\",\n      \"descripcion\": \"Clases ilimitadas al mes — acceso a cualquier sala y servicio\",\n      \"precio\": 300000,\n      \"clases_por_mes\": null,\n      \"invitados_por_mes\": 2,\n      \"activo\": true\n    }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Listar planes",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"query\": \"{ planes { id nombre precio clases_por_mes invitados_por_mes activo } }\" }"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Actualizar plan",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ActualizarPlan($id: ID!, $input: ActualizarPlanInput!) { actualizarPlan(id: $id, input: $input) { id nombre precio activo } }\",\n  \"variables\": {\n    \"id\": \"1\",\n    \"input\": { \"precio\": 160000, \"activo\": true }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🗓️ Admin — Horarios",
+      "item": [
+        {
+          "name": "Crear horario (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation CrearHorario($input: HorarioInput!) { crearHorario(input: $input) { id servicio_id sala_id entrenador_id dia_semana hora_inicio hora_fin cupo_maximo estado } }\",\n  \"variables\": {\n    \"input\": {\n      \"servicio_id\": 1,\n      \"sala_id\": 1,\n      \"entrenador_id\": 1,\n      \"dia_semana\": 1,\n      \"hora_inicio\": \"07:00\",\n      \"hora_fin\": \"08:00\",\n      \"cupo_maximo\": 15,\n      \"estado\": \"activo\"\n    }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Listar todos los horarios",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"query\": \"{ horarios { id servicio_id sala_id entrenador_id dia_semana hora_inicio hora_fin cupo_maximo estado } }\" }"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Horarios disponibles por servicio",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query HorariosDisponibles($servicio_id: Int!) { horariosDisponibles(servicio_id: $servicio_id) { id dia_semana hora_inicio hora_fin cupo_maximo estado } }\",\n  \"variables\": { \"servicio_id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Actualizar horario",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ActualizarHorario($id: ID!, $input: ActualizarHorarioInput!) { actualizarHorario(id: $id, input: $input) { id hora_inicio hora_fin cupo_maximo estado } }\",\n  \"variables\": {\n    \"id\": \"1\",\n    \"input\": { \"cupo_maximo\": 20 }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Eliminar horario",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation EliminarHorario($id: ID!) { eliminarHorario(id: $id) { id } }\",\n  \"variables\": { \"id\": \"1\" }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💰 Admin — Pagos y Reportes",
+      "item": [
+        {
+          "name": "Registrar pago de suscripción (admin verifica)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation RegistrarPago($input: PagoInput!) { registrarPago(input: $input) { id usuario_id suscripcion_id concepto monto metodo_pago estado fecha_pago } }\",\n  \"variables\": {\n    \"input\": {\n      \"usuario_id\": 1,\n      \"suscripcion_id\": 1,\n      \"concepto\": \"Suscripción Plan Básico — Octubre 2026\",\n      \"monto\": 150000,\n      \"metodo_pago\": \"transferencia\"\n    }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Registrar pago por servicio puntual (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation RegistrarPago($input: PagoInput!) { registrarPago(input: $input) { id concepto monto estado } }\",\n  \"variables\": {\n    \"input\": {\n      \"usuario_id\": 1,\n      \"concepto\": \"Clase individual Yoga Matutino — 2026-09-15\",\n      \"monto\": 35000,\n      \"metodo_pago\": \"efectivo\"\n    }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Listar todos los pagos (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"query\": \"{ pagos { id usuario_id concepto monto metodo_pago estado fecha_pago } }\" }"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Reporte de ventas (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query ReporteVentas($fecha_inicio: String, $fecha_fin: String) { reporteVentas(fecha_inicio: $fecha_inicio, fecha_fin: $fecha_fin) { total_ingresos total_pagos detalles { id concepto monto fecha_pago } } }\",\n  \"variables\": {\n    \"fecha_inicio\": \"2026-09-01\",\n    \"fecha_fin\": \"2026-09-30\"\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Reporte ventas (sin filtro — todos los tiempos)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"query\": \"{ reporteVentas { total_ingresos total_pagos } }\" }"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💸 Admin — Gastos / Pagos a Entrenadores",
+      "item": [
+        {
+          "name": "Registrar gasto/pago a entrenador (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation RegistrarGasto($input: GastoEntrenadorInput!) { registrarGastoEntrenador(input: $input) { id entrenador_id concepto monto metodo_pago fecha_pago notas } }\",\n  \"variables\": {\n    \"input\": {\n      \"entrenador_id\": 1,\n      \"concepto\": \"Pago clases semana 37 — Septiembre 2026\",\n      \"monto\": 450000,\n      \"metodo_pago\": \"transferencia\",\n      \"notas\": \"18 clases dictadas a $25.000 c/u\"\n    }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Listar todos los gastos a entrenadores (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"query\": \"{ todosGastos { id entrenador_id concepto monto metodo_pago fecha_pago notas } }\" }"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Gastos por entrenador específico (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query GastosEntrenador($entrenador_id: Int!) { gastosEntrenador(entrenador_id: $entrenador_id) { id concepto monto fecha_pago notas } }\",\n  \"variables\": { \"entrenador_id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📅 Admin — Control de Agendamiento",
+      "item": [
+        {
+          "name": "Listar todas las reservas (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"query\": \"{ reservas { id usuario_id horario_id fecha estado createdAt } }\" }"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Reservas por fecha específica (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query ReservasPorFecha($fecha: String!) { reservasPorFecha(fecha: $fecha) { id usuario_id horario_id estado } }\",\n  \"variables\": { \"fecha\": \"2026-09-15\" }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Listar suscripciones (admin verifica pagos pendientes)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"query\": \"{ suscripciones { id usuario_id plan_id fecha_inicio fecha_fin estado clases_usadas_mes pagado } }\" }"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Activar suscripción manualmente (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ActivarSuscripcion($suscripcion_id: Int!) { activarSuscripcion(suscripcion_id: $suscripcion_id) { id estado pagado } }\",\n  \"variables\": { \"suscripcion_id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧑‍🏫 Entrenador — Mi Portal",
+      "item": [
+        {
+          "name": "Ver mis horarios (entrenador)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query MisHorarios($entrenador_id: Int!) { misHorarios(entrenador_id: $entrenador_id) { id servicio_id sala_id dia_semana hora_inicio hora_fin cupo_maximo estado } }\",\n  \"variables\": { \"entrenador_id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Ver reservas de una clase (entrenador valida asistencia)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query ReservasPorHorario($horario_id: Int!) { reservasPorHorario(horario_id: $horario_id) { id usuario_id fecha estado } }\",\n  \"variables\": { \"horario_id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Marcar asistencia (entrenador confirma que cliente llegó)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation MarcarAsistencia($reserva_id: Int!) { marcarAsistencia(reserva_id: $reserva_id) { id usuario_id estado } }\",\n  \"variables\": { \"reserva_id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Ver acumulado de pagos recibidos (entrenador)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query AcumuladoEntrenador($entrenador_id: Int!) { acumuladoEntrenador(entrenador_id: $entrenador_id) }\",\n  \"variables\": { \"entrenador_id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Historial de pagos recibidos (entrenador)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query PagosPorEntrenador($entrenador_id: Int!) { pagosPorEntrenador(entrenador_id: $entrenador_id) { id concepto monto metodo_pago fecha_pago notas } }\",\n  \"variables\": { \"entrenador_id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🙋 Cliente — Suscripción",
+      "item": [
+        {
+          "name": "Suscribirse a un plan (cliente)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation Suscribirme($usuario_id: Int!, $plan_id: Int!) { suscribirme(usuario_id: $usuario_id, plan_id: $plan_id) { id usuario_id plan_id fecha_inicio fecha_fin estado clases_usadas_mes pagado } }\",\n  \"variables\": { \"usuario_id\": 1, \"plan_id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Ver mi suscripción activa (cliente)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query MiSuscripcion($usuario_id: Int!) { miSuscripcion(usuario_id: $usuario_id) { id plan_id fecha_inicio fecha_fin estado clases_usadas_mes pagado } }\",\n  \"variables\": { \"usuario_id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Renovar suscripción (cliente / admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation RenovarSuscripcion($suscripcion_id: Int!) { renovarSuscripcion(suscripcion_id: $suscripcion_id) { id fecha_inicio fecha_fin estado clases_usadas_mes pagado } }\",\n  \"variables\": { \"suscripcion_id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📆 Cliente — Agendamiento",
+      "item": [
+        {
+          "name": "Agendar clase con suscripción activa (cliente)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation CrearReserva($usuario_id: Int!, $horario_id: Int!, $fecha: String!) { crearReserva(usuario_id: $usuario_id, horario_id: $horario_id, fecha: $fecha) { id usuario_id horario_id fecha estado } }\",\n  \"variables\": {\n    \"usuario_id\": 1,\n    \"horario_id\": 1,\n    \"fecha\": \"2026-09-15\"\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Agendar servicio puntual (sin suscripción — pago previo registrado)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ReservarPuntual($usuario_id: Int!, $horario_id: Int!, $fecha: String!) { reservarServicioPuntual(usuario_id: $usuario_id, horario_id: $horario_id, fecha: $fecha) { id usuario_id horario_id fecha estado } }\",\n  \"variables\": {\n    \"usuario_id\": 1,\n    \"horario_id\": 1,\n    \"fecha\": \"2026-09-20\"\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Cancelar reserva (cliente)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation CancelarReserva($reserva_id: Int!, $usuario_id: Int!) { cancelarReserva(reserva_id: $reserva_id, usuario_id: $usuario_id) { id estado } }\",\n  \"variables\": { \"reserva_id\": 1, \"usuario_id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "Historial de mis reservas (cliente)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query MisReservas($usuario_id: Int!) { misReservas(usuario_id: $usuario_id) { id horario_id fecha estado createdAt } }\",\n  \"variables\": { \"usuario_id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💳 Cliente — Pagos",
+      "item": [
+        {
+          "name": "Historial de mis pagos (cliente)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query MisPagos($usuario_id: Int!) { misPagos(usuario_id: $usuario_id) { id concepto monto metodo_pago estado fecha_pago } }\",\n  \"variables\": { \"usuario_id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        }
+      ]
+    }
+  ]
+}

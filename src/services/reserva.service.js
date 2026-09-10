@@ -78,11 +78,34 @@ async function marcarAsistencia(reserva_id) {
   return reservaRepository.updateById(reserva_id, { estado: 'asistio' });
 }
 
+async function reservasPorFecha(fecha) {
+  return reservaRepository.findByFecha(fecha);
+}
+
+// Reserva de pago único (sin suscripción): el pago se registra externamente antes de llamar a esto
+async function reservarServicioPuntual(usuario_id, horario_id, fecha) {
+  const horario = await horarioRepository.findById(horario_id);
+  if (!horario) throw new Error('Horario no encontrado.');
+  if (horario.estado !== 'activo') throw new Error('El horario no está disponible.');
+
+  const reservasEnClase = await reservaRepository.countConfirmadasPorHorarioFecha(horario_id, fecha);
+  if (reservasEnClase >= horario.cupo_maximo) {
+    throw new Error('No hay cupo disponible para esta clase.');
+  }
+
+  const duplicada = await reservaRepository.findDuplicada(usuario_id, horario_id, fecha);
+  if (duplicada) throw new Error('Ya tienes una reserva para este horario en esa fecha.');
+
+  return reservaRepository.create({ usuario_id, horario_id, fecha, estado: 'confirmada' });
+}
+
 module.exports = {
   crearReserva,
   cancelarReserva,
   listarReservas,
   misReservas,
   reservasPorHorario,
-  marcarAsistencia
+  marcarAsistencia,
+  reservasPorFecha,
+  reservarServicioPuntual
 };
