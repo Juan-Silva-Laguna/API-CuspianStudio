@@ -4,6 +4,9 @@ const helmet = require('helmet');
 const graphqlMiddleware = require('./graphql');
 const { notFoundHandler, errorHandler } = require('./middlewares/error.middleware');
 
+// Load models and associations
+require('./models');
+
 const app = express();
 
 app.use(helmet());
@@ -12,7 +15,7 @@ app.use(express.json());
 
 app.use('/graphql', graphqlMiddleware);
 app.get('/health', (req, res) => {
-  res.json({ mensaje: 'API GraphQL de productos activa' });
+  res.json({ mensaje: 'API Cuspian Studio activa' });
 });
 
 app.use(notFoundHandler);

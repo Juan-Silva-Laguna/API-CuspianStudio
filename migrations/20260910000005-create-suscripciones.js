@@ -3,38 +3,36 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    const tableName = 'usuarios';
+    const tableName = 'suscripciones';
     const allTables = await queryInterface.showAllTables();
     const normalized = allTables.map((t) => (typeof t === 'string' ? t : t.tableName));
-
-    if (normalized.includes(tableName)) {
-      return;
-    }
+    if (normalized.includes(tableName)) return;
 
     await queryInterface.createTable(tableName, {
-      id: {
+      id: { type: Sequelize.INTEGER, allowNull: false, autoIncrement: true, primaryKey: true },
+      usuario_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        autoIncrement: true,
-        primaryKey: true
+        references: { model: 'usuarios', key: 'id' },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
       },
-      nombre: { type: Sequelize.STRING, allowNull: false },
-      email: { type: Sequelize.STRING, allowNull: false, unique: true },
-      password: { type: Sequelize.STRING, allowNull: false },
-      telefono: { type: Sequelize.STRING, allowNull: true },
-      fecha_nacimiento: { type: Sequelize.DATEONLY, allowNull: true },
-      foto_perfil: { type: Sequelize.STRING, allowNull: true },
-      codigo_qr: { type: Sequelize.STRING, allowNull: true, unique: true },
-      rol: {
-        type: Sequelize.ENUM('admin', 'cliente', 'entrenador'),
+      plan_id: {
+        type: Sequelize.INTEGER,
         allowNull: false,
-        defaultValue: 'cliente'
+        references: { model: 'planes', key: 'id' },
+        onUpdate: 'CASCADE',
+        onDelete: 'RESTRICT'
       },
+      fecha_inicio: { type: Sequelize.DATEONLY, allowNull: false },
+      fecha_fin: { type: Sequelize.DATEONLY, allowNull: false },
       estado: {
-        type: Sequelize.ENUM('activo', 'inactivo'),
+        type: Sequelize.ENUM('activa', 'inactiva', 'vencida'),
         allowNull: false,
-        defaultValue: 'activo'
+        defaultValue: 'inactiva'
       },
+      clases_usadas_mes: { type: Sequelize.INTEGER, allowNull: false, defaultValue: 0 },
+      pagado: { type: Sequelize.BOOLEAN, allowNull: false, defaultValue: false },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
@@ -49,7 +47,7 @@ module.exports = {
   },
 
   async down(queryInterface) {
-    const tableName = 'usuarios';
+    const tableName = 'suscripciones';
     const allTables = await queryInterface.showAllTables();
     const normalized = allTables.map((t) => (typeof t === 'string' ? t : t.tableName));
     if (!normalized.includes(tableName)) return;

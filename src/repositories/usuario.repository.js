@@ -1,4 +1,4 @@
-const Usuario = require('../models/usuario.model');
+const { Usuario } = require('../models');
 
 async function create(data) {
   return Usuario.create(data);
@@ -18,29 +18,16 @@ async function findByEmail(email) {
 
 async function updateById(id, data) {
   const usuario = await Usuario.findByPk(id);
-  if (!usuario) {
-    return null;
-  }
-
+  if (!usuario) return null;
   await usuario.update(data);
   return usuario;
 }
 
 async function deleteById(id) {
   const usuario = await Usuario.findByPk(id);
-  if (!usuario) {
-    return null;
-  }
-
+  if (!usuario) return null;
   await usuario.destroy();
   return usuario;
 }
 
-module.exports = {
-  create,
-  findAll,
-  findById,
-  findByEmail,
-  updateById,
-  deleteById
-};
+module.exports = { create, findAll, findById, findByEmail, updateById, deleteById };
