@@ -3,33 +3,16 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    const tableName = 'usuarios';
+    const tableName = 'servicios';
     const allTables = await queryInterface.showAllTables();
     const normalized = allTables.map((t) => (typeof t === 'string' ? t : t.tableName));
-
-    if (normalized.includes(tableName)) {
-      return;
-    }
+    if (normalized.includes(tableName)) return;
 
     await queryInterface.createTable(tableName, {
-      id: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        autoIncrement: true,
-        primaryKey: true
-      },
+      id: { type: Sequelize.INTEGER, allowNull: false, autoIncrement: true, primaryKey: true },
       nombre: { type: Sequelize.STRING, allowNull: false },
-      email: { type: Sequelize.STRING, allowNull: false, unique: true },
-      password: { type: Sequelize.STRING, allowNull: false },
-      telefono: { type: Sequelize.STRING, allowNull: true },
-      fecha_nacimiento: { type: Sequelize.DATEONLY, allowNull: true },
-      foto_perfil: { type: Sequelize.STRING, allowNull: true },
-      codigo_qr: { type: Sequelize.STRING, allowNull: true, unique: true },
-      rol: {
-        type: Sequelize.ENUM('admin', 'cliente', 'entrenador'),
-        allowNull: false,
-        defaultValue: 'cliente'
-      },
+      descripcion: { type: Sequelize.TEXT, allowNull: true },
+      duracion_minutos: { type: Sequelize.INTEGER, allowNull: false, defaultValue: 60 },
       estado: {
         type: Sequelize.ENUM('activo', 'inactivo'),
         allowNull: false,
@@ -49,7 +32,7 @@ module.exports = {
   },
 
   async down(queryInterface) {
-    const tableName = 'usuarios';
+    const tableName = 'servicios';
     const allTables = await queryInterface.showAllTables();
     const normalized = allTables.map((t) => (typeof t === 'string' ? t : t.tableName));
     if (!normalized.includes(tableName)) return;

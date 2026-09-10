@@ -1,23 +1,173 @@
-# Politécnico Grancolombiano
+# API Cuspian Studio
 
-**Maestría en Arquitectura de Software**
-**Segundo Semestre**
+**Backend GraphQL — Sistema de gestión para estudio de movimiento**
 
-**Primer Bloque - Virtual / Arquitectura de Aplicaciones Web - [Grupo K01]**
+Cuspian Studio es un estudio de movimiento que ofrece clases de Dance Fitness, Yoga, Salsa, Jumping, Funcional, Pilates, Urbano, Stretching y Bienestar. Esta API gestiona los tres roles del sistema: **Admin**, **Cliente** y **Entrenador**.
 
-## Trabajo: Backend con servicios GraphQL
+---
 
-CRUD sobre base de datos usando GraphQL y Node.js
+## Tecnologías
 
-**Módulo:** Arquitectura de Aplicaciones Web
-**Unidad:** 4
+- Node.js + Express
+- GraphQL (`express-graphql`)
+- Sequelize ORM + PostgreSQL
+- bcryptjs (contraseñas)
 
-### Integrantes
-- Valentina Orjuela Ordóñez
-- Juan Ignacio Silva Laguna
+---
 
-### Tutor / Profesor
-Wilson Eduardo Soto Forero
+## Roles del sistema
+
+| Rol | Descripción |
+|---|---|
+| `admin` | Gestión completa: salas, servicios, planes, entrenadores, horarios, pagos |
+| `cliente` | Registro, suscripción a planes, reserva de clases |
+| `entrenador` | Consulta de sus horarios y asistentes |
+
+---
+
+## Entidades y base de datos
+
+### `usuarios`
+Todos los usuarios del sistema. Campos: `nombre`, `email`, `password` (hash), `telefono`, `fecha_nacimiento`, `foto_perfil`, `codigo_qr`, `rol` (admin/cliente/entrenador), `estado` (activo/inactivo).
+
+### `entrenadores`
+Perfil extendido de un usuario con rol `entrenador`. Campos: `usuario_id`, `especialidades`, `biografia`, `certificaciones`.
+
+### `salas`
+Espacios físicos del estudio. Campos: `nombre`, `capacidad_maxima`, `descripcion`, `estado` (activa/inactiva).
+
+### `servicios`
+Tipos de clase ofrecidos. Campos: `nombre` (ej. SALSA, YOGA), `descripcion`, `duracion_minutos`, `estado`.
+
+### `planes`
+Membresías disponibles. Campos: `nombre`, `precio`, `clases_por_mes` (null = ilimitado), `invitados_por_mes`, `activo`.
+
+**Planes actuales:**
+| Plan | Clases/mes | Precio |
+|---|---|---|
+| Plan Inicial | 8 | $80.000 |
+| Plan Activo | 12 | $100.000 |
+| Plan Full | ilimitado | $150.000 |
+| Plan Cuspian VIP | ilimitado | $170.000 |
+
+### `suscripciones`
+Vincula cliente con plan. Campos: `usuario_id`, `plan_id`, `fecha_inicio`, `fecha_fin`, `estado` (activa/inactiva/vencida), `clases_usadas_mes`, `pagado`.
+
+### `horarios`
+Programación de clases. Campos: `servicio_id`, `sala_id`, `entrenador_id`, `dia_semana` (0=Dom … 6=Sáb), `hora_inicio`, `hora_fin`, `cupo_maximo`, `estado`.
+
+### `reservas`
+Agendamiento de un cliente a un horario en una fecha específica. Campos: `usuario_id`, `horario_id`, `fecha`, `estado` (confirmada/cancelada/asistio).
+
+### `pagos`
+Registro de transacciones. Campos: `usuario_id`, `suscripcion_id`, `concepto`, `monto`, `metodo_pago`, `estado`, `fecha_pago`.
+
+---
+
+## Reglas de negocio
+
+Al crear una reserva se validan en orden:
+1. El cliente tiene suscripción activa y pagada.
+2. Si el plan tiene límite de clases, no ha superado el cupo mensual.
+3. El horario existe y está activo.
+4. La sala no está llena (`reservas_confirmadas < cupo_maximo`).
+5. El cliente no tiene ya una reserva confirmada en ese horario/fecha.
+
+Al registrar un pago vinculado a una suscripción, la suscripción se activa automáticamente.
+
+---
+
+## Instalación
+
+```bash
+npm install
+cp .env.example .env
+# Configurar DATABASE_URL en .env
+npm run migrate
+npm run dev
+```
+
+---
+
+## GraphQL endpoint
+
+`POST /graphql` — También disponible en modo interactivo en `GET /graphql` (GraphiQL).
+
+### Queries principales
+
+```graphql
+# Salud de la API
+{ health }
+
+# Listar planes disponibles
+{ planes { id nombre precio clases_por_mes } }
+
+# Listar horarios de un servicio
+{ horariosDisponibles(servicio_id: 1) { id dia_semana hora_inicio hora_fin cupo_maximo } }
+
+# Mis reservas
+{ misReservas(usuario_id: 5) { id fecha estado } }
+
+# Mi suscripción activa
+{ miSuscripcion(usuario_id: 5) { estado clases_usadas_mes } }
+```
+
+### Mutations principales
+
+```graphql
+# Registrar cliente
+mutation {
+  registrarme(input: {
+    nombre: "Ana López"
+    email: "ana@email.com"
+    password: "segura123"
+  }) { id codigo_qr }
+}
+
+# Suscribirse a un plan
+mutation { suscribirme(usuario_id: 5, plan_id: 2) { id fecha_fin } }
+
+# Registrar pago (activa suscripción)
+mutation {
+  registrarPago(input: {
+    usuario_id: 5, suscripcion_id: 3
+    concepto: "Plan Activo - Septiembre"
+    monto: 100000, metodo_pago: "transferencia"
+  }) { id estado }
+}
+
+# Crear reserva
+mutation {
+  crearReserva(usuario_id: 5, horario_id: 2, fecha: "2026-09-15") {
+    id fecha estado
+  }
+}
+
+# Cancelar reserva
+mutation { cancelarReserva(reserva_id: 7, usuario_id: 5) { id estado } }
+
+# Admin: crear sala
+mutation {
+  crearSala(input: { nombre: "Sala Principal", capacidad_maxima: 20 }) { id }
+}
+
+# Admin: crear horario
+mutation {
+  crearHorario(input: {
+    servicio_id: 1, sala_id: 1, entrenador_id: 1
+    dia_semana: 1, hora_inicio: "07:00", hora_fin: "08:00", cupo_maximo: 15
+  }) { id }
+}
+```
+
+---
+
+## Variables de entorno
+
+```env
+DATABASE_URL=******host:5432/cuspian_studio
+PORT=4000
+```
 
 ---
 
